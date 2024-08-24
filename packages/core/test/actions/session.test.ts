@@ -16,6 +16,15 @@ import {
   SESSION_COOKIE_NAME,
 } from "../utils.js"
 
+const assertResponseHeaders = (response: Response) => {
+  expect(response.headers.get("Content-Type")).toEqual("application/json")
+  expect(response.headers.get("Cache-Control")).toEqual(
+    "private, no-cache, no-store"
+  )
+  expect(response.headers.get("Expires")).toEqual("0")
+  expect(response.headers.get("Pragma")).toEqual("no-cache")
+}
+
 describe("assert GET session action", () => {
   beforeEach(() => {
     vi.resetAllMocks()
@@ -94,6 +103,8 @@ describe("assert GET session action", () => {
         session: expectedSession,
         token: expectedToken,
       })
+
+      assertResponseHeaders(response)
     })
 
     it("should return null if no JWT session in the requests cookies", async () => {
@@ -102,6 +113,8 @@ describe("assert GET session action", () => {
       })
       const actual = await response.json()
       expect(actual).toEqual(null)
+
+      assertResponseHeaders(response)
     })
 
     it("should return null if JWT session is invalid", async () => {
@@ -113,6 +126,8 @@ describe("assert GET session action", () => {
       })
       const actual = await response.json()
       expect(actual).toEqual(null)
+
+      assertResponseHeaders(response)
     })
 
     it("should throw invalid JWT error if salt is invalid", async () => {
@@ -132,8 +147,10 @@ describe("assert GET session action", () => {
       })
       const actual = await response.json()
 
-      expect(logger.error).toHaveBeenCalledOnce()
       expect(actual).toEqual(null)
+      expect(logger.error).toHaveBeenCalledOnce()
+
+      assertResponseHeaders(response)
     })
   })
   describe("Database strategy", () => {
@@ -209,6 +226,8 @@ describe("assert GET session action", () => {
         email: expectedUser.email,
       })
       expect(actualBodySession.expires).toEqual(currentExpires.toISOString())
+
+      assertResponseHeaders(response)
     })
 
     it("should return null in the response, and delete the session", async () => {
@@ -263,6 +282,8 @@ describe("assert GET session action", () => {
 
       expect(actualSessionToken).toEqual("")
       expect(actualBodySession).toEqual(null)
+
+      assertResponseHeaders(response)
     })
   })
 })
